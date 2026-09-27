@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Undangan Tahlil & Doa Bersama - Almarhumah Baiq Suasmini</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Playfair Display & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            750: '#143428',
+                            800: '#102a20',
+                            900: '#0a1d15',
+                        },
+                        gold: {
+                            400: '#e5c158',
+                            500: '#d4af37',
+                            600: '#b89728',
+                        },
+                        cream: '#fcfbfa'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                        arabic: ['Amiri', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #f3e5ab 0%, #d4af37 50%, #aa7c11 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gold-border {
+            border-color: rgba(212, 175, 55, 0.4);
+        }
+        .gold-glow {
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.15);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a1d15;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d4af37;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-emerald-950 text-neutral-100 font-sans antialiased selection:bg-gold-500 selection:text-emerald-950">
+
+    <!-- Background Audio (Calm Instrumental / Ambient Audio Generator using Web Audio API or fallback) -->
+    <audio id="bgMusic" loop>
+        <source src="https://actions.google.com/sounds/v1/ambiences/wind_chimes.ogg" type="audio/ogg">
+    </audio>
+
+    <!-- COVER SCREEN (Welcome Modal / Overlay) -->
+    <div id="coverScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-emerald-950/95 backdrop-blur-md transition-all duration-700 px-4">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.08)_0%,transparent_70%)] pointer-events-none"></div>
+        <div class="max-w-md w-full bg-emerald-900/80 border gold-border p-8 rounded-2xl shadow-2xl text-center relative overflow-hidden gold-glow">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-gold-500/10 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-gold-500/10 rounded-full blur-2xl"></div>
+            
+            <p class="font-arabic text-2xl text-gold-400 mb-2">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+            <span class="inline-block px-3 py-1 bg-gold-500/15 text-gold-400 text-xs font-semibold uppercase tracking-widest rounded-full mb-4 border border-gold-500/30">
+                Undangan Digital Tahlil & Doa
+            </span>
+            
+            <h1 class="font-serif text-2xl md:text-3xl font-bold text-white mb-2">Memperingati 9 Hari<br>Almarhumah</h1>
+            <h2 class="font-serif text-xl font-bold gold-gradient-text mb-4">BAIQ SUASMINI<br><span class="text-sm font-normal text-gold-400/80">(MAMAK TANNIA)</span></h2>
+            
+            <div class="my-6 py-4 border-y border-gold-500/20 text-sm text-neutral-300">
+                <p class="mb-1 text-xs uppercase tracking-wider text-gold-400/90 font-medium">Kepada Yth. Bapak/Ibu/Saudara/i:</p>
+                <div id="guestNameDisplay" class="font-semibold text-lg text-white mt-1 bg-emerald-950/60 py-2 px-4 rounded-lg border border-gold-500/20 inline-block w-full truncate">
+                    Tamu Undangan
+                </div>
+            </div>
+
+            <p class="text-xs text-neutral-400 mb-6 italic">Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Anda berkenan hadir.</p>
+
+            <button onclick="openInvitation()" class="w-full py-3.5 px-6 bg-gradient-to-r from-gold-500 to-gold-600 text-emerald-950 font-bold rounded-xl shadow-lg hover:from-gold-400 hover:to-gold-500 transition-all transform active:scale-95 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-envelope-open"><span>Buka Undangan</span></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Floating Audio Control -->
+    <div id="audioControl" class="fixed bottom-6 right-6 z-40 hidden">
+        <button onclick="toggleAudio()" id="audioBtn" class="w-12 h-12 bg-gold-500 text-emerald-950 rounded-full shadow-lg flex items-center justify-center hover:bg-gold-400 transition-all border-2 border-white/20 animate-bounce">
+            <i id="audioIcon" class="fa-solid fa-music text-lg"></i>
+        </button>
+    </div>
+
+    <!-- MAIN INVITATION CONTENT -->
+    <main id="mainContent" class="opacity-0 transition-opacity duration-1000 max-w-2xl mx-auto min-h-screen bg-emerald-900 shadow-2xl border-x gold-border relative flex flex-col justify-between">
+        
+        <!-- Top Hero Section -->
+        <header class="relative px-6 pt-12 pb-10 text-center overflow-hidden border-b gold-border">
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.12)_0%,transparent_70%)] pointer-events-none"></div>
+            
+            <div class="arabic-header text-3xl md:text-4xl text-gold-400 mb-4 font-arabic">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+            <div class="text-gold-400 text-sm tracking-widest uppercase font-semibold mb-2">السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ</div>
+            
+            <div class="my-6">
+                <span class="px-4 py-1.5 rounded-full bg-gold-500/10 text-gold-400 text-xs font-semibold tracking-wider uppercase border border-gold-500/30">
+                    Doa & Tahlil 9 Hari Almarhumah
+                </span>
+            </div>
+
+            <div class="w-28 h-28 mx-auto mb-6 rounded-full p-1.5 bg-gradient-to-b from-gold-400 to-gold-600 gold-glow flex items-center justify-center shadow-xl">
+                <div class="w-full h-full bg-emerald-950 rounded-full flex items-center justify-center border border-gold-500/30 overflow-hidden">
+                    <i class="fa-solid fa-hands-praying text-4xl text-gold-400"></i>
+                </div>
+            </div>
+
+            <h1 class="font-serif text-3xl md:text-4xl font-bold text-white mb-2 tracking-wide">BAIQ SUASMINI</h1>
+            <p class="font-serif text-lg text-gold-400 font-medium mb-4">(MAMAK TANNIA)</p>
+            
+            <div class="inline-block bg-emerald-950/80 px-4 py-2 rounded-xl border border-gold-500/20 text-neutral-300 text-sm">
+                Wafat pada Hari: <strong class="text-white">Sabtu, 19 September 2026</strong>
+            </div>
+
+            <p class="text-neutral-300 text-sm md:text-base leading-relaxed max-w-lg mx-auto mt-6">
+                Dengan memohon rahmat dan ridho Allah SWT, kami sekeluarga bermaksud mengundang Bapak/Ibu/Saudara/i sekalian untuk menghadiri acara tahlil dan doa bersama memperingati 9 hari meninggalnya ibunda kami tercinta.
+            </p>
+        </header>
+
+        <!-- Countdown Section -->
+        <section class="px-6 py-8 border-b gold-border bg-emerald-950/40 text-center">
+            <h3 class="text-xs uppercase tracking-widest text-gold-400 font-semibold mb-4">Menuju Acara Peringatan 9 Hari</h3>
+            <div class="grid grid-cols-4 gap-3 max-w-md mx-auto">
+                <div class="bg-emerald-900/90 border gold-border p-3 rounded-xl shadow">
+                    <span id="days" class="font-serif text-2xl md:text-3xl font-bold text-gold-400 block">00</span>
+                    <span class="text-[10px] uppercase text-neutral-400 tracking-wider">Hari</span>
+                </div>
+                <div class="bg-emerald-900/90 border gold-border p-3 rounded-xl shadow">
+                    <span id="hours" class="font-serif text-2xl md:text-3xl font-bold text-gold-400 block">00</span>
+                    <span class="text-[10px] uppercase text-neutral-400 tracking-wider">Jam</span>
+                </div>
+                <div class="bg-emerald-900/90 border gold-border p-3 rounded-xl shadow">
+                    <span id="minutes" class="font-serif text-2xl md:text-3xl font-bold text-gold-400 block">00</span>
+                    <span class="text-[10px] uppercase text-neutral-400 tracking-wider">Menit</span>
+                </div>
+                <div class="bg-emerald-900/90 border gold-border p-3 rounded-xl shadow">
+                    <span id="seconds" class="font-serif text-2xl md:text-3xl font-bold text-gold-400 block">00</span>
+                    <span class="text-[10px] uppercase text-neutral-400 tracking-wider">Detik</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Event Details Section -->
+        <section class="px-6 py-10 border-b gold-border">
+            <div class="text-center mb-8">
+                <h2 class="font-serif text-2xl font-bold text-white mb-1">Waktu & Tempat Acara</h2>
+                <div class="w-16 h-0.5 bg-gold-500 mx-auto mt-2"></div>
+            </div>
+
+            <div class="space-y-4 max-w-md mx-auto">
+                <div class="bg-emerald-950/70 border gold-border rounded-2xl p-5 flex items-start space-x-4 shadow-lg">
+                    <div class="w-12 h-12 bg-gold-500/15 rounded-xl flex items-center justify-center shrink-0 border border-gold-500/30 text-gold-400 text-xl">
+                        <i class="fa-solid fa-calendar-days"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs uppercase tracking-wider text-gold-400 font-semibold mb-1">Hari & Tanggal</h4>
+                        <p class="text-white font-medium">Selasa, 29 September 2026</p>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-950/70 border gold-border rounded-2xl p-5 flex items-start space-x-4 shadow-lg">
+                    <div class="w-12 h-12 bg-gold-500/15 rounded-xl flex items-center justify-center shrink-0 border border-gold-500/30 text-gold-400 text-xl">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs uppercase tracking-wider text-gold-400 font-semibold mb-1">Waktu</h4>
+                        <p class="text-white font-medium">Pukul 10.30 WITA s.d. selesai</p>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-950/70 border gold-border rounded-2xl p-5 flex items-start space-x-4 shadow-lg">
+                    <div class="w-12 h-12 bg-gold-500/15 rounded-xl flex items-center justify-center shrink-0 border border-gold-500/30 text-gold-400 text-xl">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs uppercase tracking-wider text-gold-400 font-semibold mb-1">Tempat</h4>
+                        <p class="text-white font-medium">Kediaman kami di Dusun Dayen Pekan, Desa Penujak</p>
+                        <a href="https://maps.google.com/?q=Desa+Penujak+Praya+Barat+Lombok+Tengah" target="_blank" class="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-gold-500 hover:bg-gold-400 text-emerald-950 font-bold text-xs rounded-xl transition-all shadow">
+                            <i class="fa-solid fa-map-location-dot"></i> Buka Google Maps
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RSVP Section -->
+        <section class="px-6 py-10 border-b gold-border bg-emerald-950/30">
+            <div class="text-center mb-8">
+                <h2 class="font-serif text-2xl font-bold text-white mb-1">Konfirmasi Kehadiran (RSVP)</h2>
+                <p class="text-xs text-neutral-400">Mohon konfirmasi kehadiran Anda untuk membantu persiapan kami.</p>
+                <div class="w-16 h-0.5 bg-gold-500 mx-auto mt-2"></div>
+            </div>
+
+            <form id="rsvpForm" onsubmit="handleRSVP(event)" class="max-w-md mx-auto space-y-4 bg-emerald-950/80 p-6 rounded-2xl border gold-border shadow-lg">
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-gold-400 font-semibold mb-1.5">Nama Lengkap</label>
+                    <input type="text" id="rsvpName" required class="w-full px-4 py-3 bg-emerald-900 border gold-border rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-gold-400 text-sm" placeholder="Masukkan nama Anda...">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-gold-400 font-semibold mb-1.5">Konfirmasi Kehadiran</label>
+                    <select id="rsvpStatus" class="w-full px-4 py-3 bg-emerald-900 border gold-border rounded-xl text-white focus:outline-none focus:border-gold-400 text-sm">
+                        <option value="Hadir">Hadir (Insya Allah)</option>
+                        <option value="Berhalangan">Berhalangan Hadir</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-gold-400 font-semibold mb-1.5">Catatan / Doa Singkat</label>
+                    <textarea id="rsvpMessage" rows="3" class="w-full px-4 py-3 bg-emerald-900 border gold-border rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-gold-400 text-sm resize-none" placeholder="Tuliskan doa untuk almarhumah..."></textarea>
+                </div>
+                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-gold-500 to-gold-600 text-emerald-950 font-bold rounded-xl shadow-lg hover:from-gold-400 hover:to-gold-500 transition-all text-sm">
+                    Kirim Konfirmasi
+                </button>
+            </form>
+            <div id="rsvpSuccess" class="hidden max-w-md mx-auto mt-4 p-4 bg-emerald-950 border border-green-500 text-green-300 rounded-xl text-center text-sm">
+                <i class="fa-solid fa-circle-check mr-2"></i> Terima kasih, konfirmasi kehadiran Anda telah tersimpan.
+            </div>
+        </section>
+
+        <!-- Guestbook Section -->
+        <section class="px-6 py-10 border-b gold-border">
+            <div class="text-center mb-8">
+                <h2 class="font-serif text-2xl font-bold text-white mb-1">Buku Tamu & Ucapan Belasungkawa</h2>
+                <p class="text-xs text-neutral-400">Kirimkan doa dan ucapan belasungkawa untuk keluarga yang ditinggalkan.</p>
+                <div class="w-16 h-0.5 bg-gold-500 mx-auto mt-2"></div>
+            </div>
+
+            <div class="max-w-md mx-auto space-y-6">
+                <form id="commentForm" onsubmit="handleComment(event)" class="bg-emerald-950/80 p-6 rounded-2xl border gold-border shadow-lg space-y-4">
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-gold-400 font-semibold mb-1.5">Nama Anda</label>
+                        <input type="text" id="commentName" required class="w-full px-4 py-3 bg-emerald-900 border gold-border rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-gold-400 text-sm" placeholder="Nama pengirim...">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-gold-400 font-semibold mb-1.5">Ucapan & Doa</label>
+                        <textarea id="commentText" required rows="3" class="w-full px-4 py-3 bg-emerald-900 border gold-border rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-gold-400 text-sm resize-none" placeholder="Tuliskan doa terbaik..."></textarea>
+                    </div>
+                    <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-gold-500 to-gold-600 text-emerald-950 font-bold rounded-xl shadow-lg hover:from-gold-400 hover:to-gold-500 transition-all text-sm">
+                        Kirim Ucapan
+                    </button>
+                </form>
+
+                <div id="commentsList" class="space-y-3 max-h-96 overflow-y-auto pr-1">
+                    <!-- Dynamically populated comments -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer / Family Signature -->
+        <footer class="px-6 py-12 text-center bg-emerald-950 relative overflow-hidden">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(212,175,55,0.08)_0%,transparent_70%)] pointer-events-none"></div>
+            
+            <p class="font-arabic text-2xl text-gold-400 mb-4">السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ</p>
+            
+            <p class="text-xs uppercase tracking-widest text-neutral-400 mb-3">Hormat Kami, Keluarga Besar Almarhumah</p>
+            
+            <div class="font-serif text-xl font-bold gold-gradient-text tracking-wide mb-6">
+                BAIQ TANNIA NINGGRUM<br>
+                <span class="text-sm font-normal text-neutral-300">&</span><br>
+                LALU ZAENUL ROFII
+            </div>
+
+            <p class="text-xs text-neutral-400 max-w-md mx-auto leading-relaxed mb-6">
+                Merupakan suatu kehormatan dan kebahagiaan bagi kami sekeluarga apabila Bapak/Ibu/Saudara/i berkenan hadir untuk memberikan doa bagi almarhumah. Atas kehadiran, perhatian, dan doa yang diberikan, kami ucapkan terima kasih.
+            </p>
+
+            <div class="pt-6 border-t border-gold-500/20 text-xs text-neutral-500">
+                © 2026 Undangan Digital Tahlil • Almarhumah Baiq Suasmini
+            </div>
+        </footer>
+
+    </main>
+
+    <!-- Scripts -->
+    <script>
+        // Get guest name from URL parameter if available (?to=Nama+Tamu)
+        const urlParams = new URLSearchParams(window.location.search);
+        const guestParam = urlParams.get('to');
+        if (guestParam) {
+            document.getElementById('guestNameDisplay').textContent = decodeURIComponent(guestParam);
+            document.getElementById('commentName').value = decodeURIComponent(guestParam);
+            document.getElementById('rsvpName').value = decodeURIComponent(guestParam);
+        }
+
+        // Open Invitation function
+        function openInvitation() {
+            const cover = document.getElementById('coverScreen');
+            const main = document.getElementById('mainContent');
+            const audioCtrl = document.getElementById('audioControl');
+            
+            cover.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                cover.style.display = 'none';
+                main.classList.remove('opacity-0');
+                audioCtrl.classList.remove('hidden');
+                playAudio();
+            }, 600);
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Background Audio Toggle
+        const bgMusic = document.getElementById('bgMusic');
+        let isPlaying = false;
+        
+        function playAudio() {
+            bgMusic.play().then(() => {
+                isPlaying = true;
+                document.getElementById('audioIcon').className = "fa-solid fa-music text-lg animate-spin";
+            }).catch(e => {
+                console.log("Audio autoplay prevented:", e);
+                isPlaying = false;
+                document.getElementById('audioIcon').className = "fa-solid fa-volume-xmark text-lg";
+            });
+        }
+
+        function toggleAudio() {
+            if (isPlaying) {
+                bgMusic.pause();
+                isPlaying = false;
+                document.getElementById('audioIcon').className = "fa-solid fa-volume-xmark text-lg animate-none";
+            } else {
+                bgMusic.play();
+                isPlaying = true;
+                document.getElementById('audioIcon').className = "fa-solid fa-music text-lg animate-spin";
+            }
+        }
+
+        // Countdown Timer Logic (Target: 29 September 2026 10:30:00 WITA)
+        const targetDate = new Date("September 29, 2026 10:30:00 GMT+08:00").getTime();
+
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            if (distance < 0) {
+                document.getElementById("days").innerText = "00";
+                document.getElementById("hours").innerText = "00";
+                document.getElementById("minutes").innerText = "00";
+                document.getElementById("seconds").innerText = "00";
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById("days").innerText = String(days).padStart(2, '0');
+            document.getElementById("hours").innerText = String(hours).padStart(2, '0');
+            document.getElementById("minutes").innerText = String(minutes).padStart(2, '0');
+            document.getElementById("seconds").innerText = String(seconds).padStart(2, '0');
+        }
+
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+
+        // RSVP Handler
+        function handleRSVP(e) {
+            e.preventDefault();
+            const name = document.getElementById('rsvpName').value;
+            const status = document.getElementById('rsvpStatus').value;
+            const message = document.getElementById('rsvpMessage').value;
+
+            // Save to localStorage
+            const rsvps = JSON.parse(localStorage.getItem('tahlil_rsvps') || '[]');
+            rsvps.unshift({ name, status, message, date: new Date().toLocaleDateString('id-ID') });
+            localStorage.setItem('tahlil_rsvps', JSON.stringify(rsvps));
+
+            document.getElementById('rsvpForm').reset();
+            document.getElementById('rsvpSuccess').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('rsvpSuccess').classList.add('hidden');
+            }, 4000);
+        }
+
+        // Comment / Guestbook Handler
+        let defaultComments = [
+            { name: "H. Abdullah & Keluarga", text: "Innalillahi wa inna ilaihi raji'un. Semoga Almarhumah Husnul Khatimah dan keluarga yang ditinggalkan diberi kesabaran.", date: "27 Sep 2026" },
+            { name: "Lalu M. Wirawan", text: "Al Fatihah untuk Almarhumah Mamak Tannia. Semoga amal ibadahnya diterima di sisi Allah SWT.", date: "26 Sep 2026" }
+        ];
+
+        function loadComments() {
+            const saved = JSON.parse(localStorage.getItem('tahlil_comments') || JSON.stringify(defaultComments));
+            const container = document.getElementById('commentsList');
+            container.innerHTML = '';
+
+            saved.forEach(c => {
+                const div = document.createElement('div');
+                div.className = "bg-emerald-900/70 border gold-border p-4 rounded-xl shadow";
+                div.innerHTML = `
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-semibold text-white text-sm">${escapeHTML(c.name)}</span>
+                        <span class="text-[10px] text-neutral-400">${c.date}</span>
+                    </div>
+                    <p class="text-neutral-300 text-xs md:text-sm leading-relaxed">${escapeHTML(c.text)}</p>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function handleComment(e) {
+            e.preventDefault();
+            const name = document.getElementById('commentName').value;
+            const text = document.getElementById('commentText').value;
+
+            const saved = JSON.parse(localStorage.getItem('tahlil_comments') || JSON.stringify(defaultComments));
+            saved.unshift({ name, text, date: new Date().toLocaleDateString('id-ID') });
+            localStorage.setItem('tahlil_comments', JSON.stringify(saved));
+
+            document.getElementById('commentText').value = '';
+            loadComments();
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        loadComments();
+    </script>
+</body>
+</html>
