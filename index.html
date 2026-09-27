@@ -288,6 +288,7 @@
 
     </main>
 
+
     <!-- Scripts -->
     <script>
         // Get guest name from URL parameter if available (?to=Nama+Tamu)
@@ -302,61 +303,41 @@
         // Open Invitation function
         function openInvitation() {
             const cover = document.getElementById('coverScreen');
-            const main = document.getElementById('mainContent');
-            const audioCtrl = document.getElementById('audioControl');
-            
+            const main  = document.getElementById('mainContent');
             cover.classList.add('opacity-0', 'pointer-events-none');
             setTimeout(() => {
                 cover.style.display = 'none';
                 main.classList.remove('opacity-0');
             }, 600);
-            
-            // Scroll to top
             window.scrollTo(0, 0);
         }
-
-
 
         // Countdown Timer Logic (Target: 29 September 2026 10:30:00 WITA)
         const targetDate = new Date("September 29, 2026 10:30:00 GMT+08:00").getTime();
 
         function updateCountdown() {
-            const now = new Date().getTime();
+            const now      = new Date().getTime();
             const distance = targetDate - now;
-
             if (distance < 0) {
-                document.getElementById("days").innerText = "00";
-                document.getElementById("hours").innerText = "00";
-                document.getElementById("minutes").innerText = "00";
-                document.getElementById("seconds").innerText = "00";
+                ["days","hours","minutes","seconds"].forEach(id => document.getElementById(id).innerText = "00");
                 return;
             }
-
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-            document.getElementById("days").innerText = String(days).padStart(2, '0');
-            document.getElementById("hours").innerText = String(hours).padStart(2, '0');
-            document.getElementById("minutes").innerText = String(minutes).padStart(2, '0');
-            document.getElementById("seconds").innerText = String(seconds).padStart(2, '0');
+            document.getElementById("days").innerText    = String(Math.floor(distance / 86400000)).padStart(2, '0');
+            document.getElementById("hours").innerText   = String(Math.floor((distance % 86400000) / 3600000)).padStart(2, '0');
+            document.getElementById("minutes").innerText = String(Math.floor((distance % 3600000) / 60000)).padStart(2, '0');
+            document.getElementById("seconds").innerText = String(Math.floor((distance % 60000) / 1000)).padStart(2, '0');
         }
-
         setInterval(updateCountdown, 1000);
         updateCountdown();
 
-        // RSVP Handler
+        // RSVP Handler — kirim ke WhatsApp
         function handleRSVP(e) {
             e.preventDefault();
-            const name = document.getElementById('rsvpName').value;
-            const status = document.getElementById('rsvpStatus').value;
+            const name    = document.getElementById('rsvpName').value;
+            const status  = document.getElementById('rsvpStatus').value;
             const message = document.getElementById('rsvpMessage').value;
-
-            // Kirim ke WhatsApp
-            const waText = `*KONFIRMASI KEHADIRAN*%0A*Tahlil Almarhumah Baiq Suasmini*%0A%0A👤 *Nama:* ${encodeURIComponent(name)}%0A✅ *Status:* ${encodeURIComponent(status)}%0A🤲 *Catatan/Doa:* ${encodeURIComponent(message || '-')}`;
-            const waURL = `https://wa.me/6281996905165?text=${waText}`;
-
+            const waText  = `*KONFIRMASI KEHADIRAN*%0A*Tahlil Almarhumah Baiq Suasmini*%0A%0A%F0%9F%91%A4 *Nama:* ${encodeURIComponent(name)}%0A%E2%9C%85 *Status:* ${encodeURIComponent(status)}%0A%F0%9F%A4%B2 *Catatan/Doa:* ${encodeURIComponent(message || '-')}`;
+            const waURL   = `https://wa.me/6281996905165?text=${waText}`;
             document.getElementById('rsvpForm').reset();
             document.getElementById('rsvpSuccess').classList.remove('hidden');
             setTimeout(() => {
@@ -365,60 +346,88 @@
             }, 1000);
         }
 
-        // Comment / Guestbook Handler
-        let defaultComments = [
-            { name: "H. Abdullah & Keluarga", text: "Innalillahi wa inna ilaihi raji'un. Semoga Almarhumah Husnul Khatimah dan keluarga yang ditinggalkan diberi kesabaran.", date: "27 Sep 2026" },
-            { name: "Lalu M. Wirawan", text: "Al Fatihah untuk Almarhumah Mamak Tannia. Semoga amal ibadahnya diterima di sisi Allah SWT.", date: "26 Sep 2026" }
-        ];
+        // Shared helper
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g,
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+    </script>
 
-        function loadComments() {
-            const saved = JSON.parse(localStorage.getItem('tahlil_comments') || JSON.stringify(defaultComments));
+    <!-- Firebase Firestore: Buku Tamu Realtime -->
+    <script type="module">
+        import { initializeApp }
+            from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp }
+            from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey:            "AIzaSyCdcF_tPRtTIE17wJQthxl8MjJ8vnmauwA",
+            authDomain:        "undangan-tahlil.firebaseapp.com",
+            projectId:         "undangan-tahlil",
+            storageBucket:     "undangan-tahlil.firebasestorage.app",
+            messagingSenderId: "1065448731418",
+            appId:             "1:1065448731418:web:c8b3c189b524dd814872a3"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db  = getFirestore(app);
+
+        // Realtime listener: tampilkan semua ucapan untuk semua pengunjung
+        const q = query(collection(db, 'ucapan'), orderBy('timestamp', 'desc'));
+
+        onSnapshot(q, (snapshot) => {
             const container = document.getElementById('commentsList');
+            if (snapshot.empty) {
+                container.innerHTML = '<p class="text-neutral-500 text-xs text-center py-6 italic"><i class="fa-solid fa-feather mr-1"></i>Belum ada ucapan. Jadilah yang pertama mengirim doa!</p>';
+                return;
+            }
             container.innerHTML = '';
-
-            saved.forEach(c => {
-                const div = document.createElement('div');
+            snapshot.forEach(doc => {
+                const c    = doc.data();
+                const date = c.timestamp
+                    ? new Date(c.timestamp.toDate()).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+                    : '-';
+                const div  = document.createElement('div');
                 div.className = "bg-emerald-900/70 border gold-border p-4 rounded-xl shadow";
                 div.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
                         <span class="font-semibold text-white text-sm">${escapeHTML(c.name)}</span>
-                        <span class="text-[10px] text-neutral-400">${c.date}</span>
+                        <span class="text-[10px] text-neutral-400">${date}</span>
                     </div>
                     <p class="text-neutral-300 text-xs md:text-sm leading-relaxed">${escapeHTML(c.text)}</p>
                 `;
                 container.appendChild(div);
             });
-        }
+        });
 
-        function handleComment(e) {
+        // Simpan ucapan ke Firestore + kirim notif ke WhatsApp
+        window.handleComment = async function(e) {
             e.preventDefault();
-            const name = document.getElementById('commentName').value;
-            const text = document.getElementById('commentText').value;
+            const name = document.getElementById('commentName').value.trim();
+            const text = document.getElementById('commentText').value.trim();
+            if (!name || !text) return;
 
-            const saved = JSON.parse(localStorage.getItem('tahlil_comments') || JSON.stringify(defaultComments));
-            saved.unshift({ name, text, date: new Date().toLocaleDateString('id-ID') });
-            localStorage.setItem('tahlil_comments', JSON.stringify(saved));
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.disabled  = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mengirim...';
 
-            // Kirim ke WhatsApp
-            const waText = `*UCAPAN BELASUNGKAWA*%0A*Tahlil Almarhumah Baiq Suasmini*%0A%0A👤 *Nama:* ${encodeURIComponent(name)}%0A🤲 *Ucapan & Doa:* ${encodeURIComponent(text)}`;
-            const waURL = `https://wa.me/6281996905165?text=${waText}`;
+            try {
+                await addDoc(collection(db, 'ucapan'), { name, text, timestamp: serverTimestamp() });
+            } catch (err) {
+                console.error("Gagal menyimpan ucapan:", err);
+            }
+
+            const waText = `*UCAPAN BELASUNGKAWA*%0A*Tahlil Almarhumah Baiq Suasmini*%0A%0A%F0%9F%91%A4 *Nama:* ${encodeURIComponent(name)}%0A%F0%9F%A4%B2 *Ucapan %26 Doa:* ${encodeURIComponent(text)}`;
+            const waURL  = `https://wa.me/6281996905165?text=${waText}`;
 
             document.getElementById('commentName').value = '';
             document.getElementById('commentText').value = '';
-            loadComments();
+            btn.disabled  = false;
+            btn.innerHTML = 'Kirim Ucapan';
 
-            setTimeout(() => {
-                window.open(waURL, '_blank');
-            }, 500);
-        }
-
-        function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, 
-                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-            );
-        }
-
-        loadComments();
+            setTimeout(() => window.open(waURL, '_blank'), 500);
+        };
     </script>
 </body>
 </html>
