@@ -330,20 +330,14 @@
         setInterval(updateCountdown, 1000);
         updateCountdown();
 
-        // RSVP Handler — kirim ke WhatsApp
+        // RSVP Handler
         function handleRSVP(e) {
             e.preventDefault();
-            const name    = document.getElementById('rsvpName').value;
-            const status  = document.getElementById('rsvpStatus').value;
-            const message = document.getElementById('rsvpMessage').value;
-            const waText  = `*KONFIRMASI KEHADIRAN*%0A*Tahlil Almarhumah Baiq Suasmini*%0A%0A%F0%9F%91%A4 *Nama:* ${encodeURIComponent(name)}%0A%E2%9C%85 *Status:* ${encodeURIComponent(status)}%0A%F0%9F%A4%B2 *Catatan/Doa:* ${encodeURIComponent(message || '-')}`;
-            const waURL   = `https://wa.me/6281996905165?text=${waText}`;
             document.getElementById('rsvpForm').reset();
             document.getElementById('rsvpSuccess').classList.remove('hidden');
             setTimeout(() => {
                 document.getElementById('rsvpSuccess').classList.add('hidden');
-                window.open(waURL, '_blank');
-            }, 1000);
+            }, 4000);
         }
 
         // Shared helper
@@ -401,7 +395,7 @@
             });
         });
 
-        // Simpan ucapan ke Firestore + kirim notif ke WhatsApp
+        // Simpan ucapan ke Firestore
         window.handleComment = async function(e) {
             e.preventDefault();
             const name = document.getElementById('commentName').value.trim();
@@ -418,15 +412,10 @@
                 console.error("Gagal menyimpan ucapan:", err);
             }
 
-            const waText = `*UCAPAN BELASUNGKAWA*%0A*Tahlil Almarhumah Baiq Suasmini*%0A%0A%F0%9F%91%A4 *Nama:* ${encodeURIComponent(name)}%0A%F0%9F%A4%B2 *Ucapan %26 Doa:* ${encodeURIComponent(text)}`;
-            const waURL  = `https://wa.me/6281996905165?text=${waText}`;
-
             document.getElementById('commentName').value = '';
             document.getElementById('commentText').value = '';
             btn.disabled  = false;
             btn.innerHTML = 'Kirim Ucapan';
-
-            setTimeout(() => window.open(waURL, '_blank'), 500);
         };
     </script>
 </body>
