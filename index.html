@@ -353,16 +353,16 @@
             const status = document.getElementById('rsvpStatus').value;
             const message = document.getElementById('rsvpMessage').value;
 
-            // Save to localStorage
-            const rsvps = JSON.parse(localStorage.getItem('tahlil_rsvps') || '[]');
-            rsvps.unshift({ name, status, message, date: new Date().toLocaleDateString('id-ID') });
-            localStorage.setItem('tahlil_rsvps', JSON.stringify(rsvps));
+            // Kirim ke WhatsApp
+            const waText = `*KONFIRMASI KEHADIRAN*%0A*Tahlil Almarhumah Baiq Suasmini*%0A%0A👤 *Nama:* ${encodeURIComponent(name)}%0A✅ *Status:* ${encodeURIComponent(status)}%0A🤲 *Catatan/Doa:* ${encodeURIComponent(message || '-')}`;
+            const waURL = `https://wa.me/6281996905165?text=${waText}`;
 
             document.getElementById('rsvpForm').reset();
             document.getElementById('rsvpSuccess').classList.remove('hidden');
             setTimeout(() => {
                 document.getElementById('rsvpSuccess').classList.add('hidden');
-            }, 4000);
+                window.open(waURL, '_blank');
+            }, 1000);
         }
 
         // Comment / Guestbook Handler
@@ -399,8 +399,17 @@
             saved.unshift({ name, text, date: new Date().toLocaleDateString('id-ID') });
             localStorage.setItem('tahlil_comments', JSON.stringify(saved));
 
+            // Kirim ke WhatsApp
+            const waText = `*UCAPAN BELASUNGKAWA*%0A*Tahlil Almarhumah Baiq Suasmini*%0A%0A👤 *Nama:* ${encodeURIComponent(name)}%0A🤲 *Ucapan & Doa:* ${encodeURIComponent(text)}`;
+            const waURL = `https://wa.me/6281996905165?text=${waText}`;
+
+            document.getElementById('commentName').value = '';
             document.getElementById('commentText').value = '';
             loadComments();
+
+            setTimeout(() => {
+                window.open(waURL, '_blank');
+            }, 500);
         }
 
         function escapeHTML(str) {
