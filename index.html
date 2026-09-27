@@ -63,10 +63,7 @@
 </head>
 <body class="bg-emerald-950 text-neutral-100 font-sans antialiased selection:bg-gold-500 selection:text-emerald-950">
 
-    <!-- Background Audio (Calm Instrumental / Ambient Audio Generator using Web Audio API or fallback) -->
-    <audio id="bgMusic" loop>
-        <source src="https://actions.google.com/sounds/v1/ambiences/wind_chimes.ogg" type="audio/ogg">
-    </audio>
+
 
     <!-- COVER SCREEN (Welcome Modal / Overlay) -->
     <div id="coverScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-emerald-950/95 backdrop-blur-md transition-all duration-700 px-4">
@@ -98,12 +95,7 @@
         </div>
     </div>
 
-    <!-- Floating Audio Control -->
-    <div id="audioControl" class="fixed bottom-6 right-6 z-40 hidden">
-        <button onclick="toggleAudio()" id="audioBtn" class="w-12 h-12 bg-gold-500 text-emerald-950 rounded-full shadow-lg flex items-center justify-center hover:bg-gold-400 transition-all border-2 border-white/20 animate-bounce">
-            <i id="audioIcon" class="fa-solid fa-music text-lg"></i>
-        </button>
-    </div>
+
 
     <!-- MAIN INVITATION CONTENT -->
     <main id="mainContent" class="opacity-0 transition-opacity duration-1000 max-w-2xl mx-auto min-h-screen bg-emerald-900 shadow-2xl border-x gold-border relative flex flex-col justify-between">
@@ -317,40 +309,13 @@
             setTimeout(() => {
                 cover.style.display = 'none';
                 main.classList.remove('opacity-0');
-                audioCtrl.classList.remove('hidden');
-                playAudio();
             }, 600);
             
             // Scroll to top
             window.scrollTo(0, 0);
         }
 
-        // Background Audio Toggle
-        const bgMusic = document.getElementById('bgMusic');
-        let isPlaying = false;
-        
-        function playAudio() {
-            bgMusic.play().then(() => {
-                isPlaying = true;
-                document.getElementById('audioIcon').className = "fa-solid fa-music text-lg animate-spin";
-            }).catch(e => {
-                console.log("Audio autoplay prevented:", e);
-                isPlaying = false;
-                document.getElementById('audioIcon').className = "fa-solid fa-volume-xmark text-lg";
-            });
-        }
 
-        function toggleAudio() {
-            if (isPlaying) {
-                bgMusic.pause();
-                isPlaying = false;
-                document.getElementById('audioIcon').className = "fa-solid fa-volume-xmark text-lg animate-none";
-            } else {
-                bgMusic.play();
-                isPlaying = true;
-                document.getElementById('audioIcon').className = "fa-solid fa-music text-lg animate-spin";
-            }
-        }
 
         // Countdown Timer Logic (Target: 29 September 2026 10:30:00 WITA)
         const targetDate = new Date("September 29, 2026 10:30:00 GMT+08:00").getTime();
